@@ -1015,6 +1015,12 @@ local double_scale = {
 		end
 		return lenient_bignum(orig_scale_scale + to_big(true_base))
 	end,
+	add_to_deck = function(self, card, from_debuff)
+		Cryptid.update_scale_mod_jokers()
+	end,
+	remove_from_deck = function(self, card, from_debuff)
+		Cryptid.update_scale_mod_jokers()
+	end,
 	cry_credits = {
 		idea = {
 			"Mystic Misclick",

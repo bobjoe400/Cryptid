@@ -798,6 +798,12 @@ local scalae = {
 			},
 		}
 	end,
+	add_to_deck = function(self, card, from_debuff)
+		Cryptid.update_scale_mod_jokers()
+	end,
+	remove_from_deck = function(self, card, from_debuff)
+		Cryptid.update_scale_mod_jokers()
+	end,
 	cry_credits = {
 		idea = { "Mathguy" },
 		art = { "Mathguy" },
