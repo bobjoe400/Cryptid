@@ -92,7 +92,7 @@ local happyhouse = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-happyhouse",
@@ -119,7 +119,7 @@ local happyhouse = {
 			vars = {
 				number_format(center.ability.extra.mult),
 				number_format(center.ability.immutable.check),
-				number_format(center.ability.tirgger),
+				number_format(center.ability.extra.trigger),
 			},
 		}
 	end,
@@ -823,7 +823,7 @@ local cube = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-Cube",
@@ -1099,15 +1099,17 @@ local compound_interest = {
 			local bonus = lenient_bignum(
 				math.max(0, math.floor(0.01 * to_big(card.ability.extra.percent) * (G.GAME.dollars or 1)))
 			)
+
 			local old = lenient_bignum(card.ability.extra.percent)
+
 			card.ability.extra.percent =
 				lenient_bignum(to_big(card.ability.extra.percent) + card.ability.extra.percent_mod)
-			Cryptid.compound_interest_scale_mod(
-				card,
-				lenient_bignum(card.ability.extra.percent_mod),
-				old,
-				card.ability.extra.percent
-			)
+
+			Cryptid.apply_scale_mod(card, card.ability.extra.percent_mod, old, card.ability.extra.percent, {
+				base = { { "extra", "percent" } },
+				scaler = { { "extra", "percent_mod" } },
+				scaler_base = { card.ability.extra.percent_mod },
+			})
 			if to_big(bonus) > to_big(0) then
 				return bonus
 			end
@@ -1246,7 +1248,7 @@ local nice = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-Nice",
@@ -1395,7 +1397,7 @@ local chad = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-Chad",
@@ -1445,7 +1447,7 @@ local jimball = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-Jimball",
@@ -1557,7 +1559,7 @@ local sus = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-SUS",
@@ -1844,7 +1846,7 @@ local krustytheclown = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-krustytheclown",
@@ -1907,7 +1909,7 @@ local blurred = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-blurred Joker",
@@ -5129,7 +5131,6 @@ local stronghold = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_asteroidbelt",
 		},
@@ -5188,7 +5189,6 @@ local wtf = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_void",
 		},
@@ -5247,7 +5247,6 @@ local clash = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_marsmoons",
 		},
@@ -5301,6 +5300,49 @@ local clash = {
 		end
 	end,
 	unlocked = false,
+}
+local filler = {
+	object_type = "Joker",
+	dependencies = {
+		items = {
+			"set_cry_meme",
+		},
+	},
+	name = "cry-filler",
+	key = "filler",
+	pos = { x = 0, y = 1 },
+	pools = { ["Meme"] = true },
+	config = { Xmult = 1.00000000000003, type = "High Card" },
+	loc_vars = function(self, info_queue, card)
+		return { vars = { card.ability.x_mult, localize(card.ability.type, "poker_hands") } }
+	end,
+	atlas = "atlasthree",
+	rarity = 3,
+	order = 89,
+	cost = 1,
+	blueprint_compat = true,
+	calculate = function(self, card, context)
+		if context.joker_main and context.poker_hands and next(context.poker_hands[card.ability.type]) then
+			return {
+				message = localize({ type = "variable", key = "a_xmult", vars = { card.ability.x_mult } }),
+				colour = G.C.RED,
+				Xmult_mod = card.ability.x_mult,
+			}
+		end
+	end,
+	cry_credits = {
+		idea = {
+			"Mathguy",
+		},
+		art = {
+			"Mathguy",
+		},
+		code = {
+			"Mathguy",
+		},
+	},
+	unlocked = false,
+	unlock_condition = { type = "win_no_hand", extra = "High Card" },
 }
 local giggly = {
 	object_type = "Joker",
@@ -5709,7 +5751,6 @@ local bonkers = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_asteroidbelt",
 		},
@@ -5761,7 +5802,6 @@ local fuckedup = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_void",
 		},
@@ -5813,7 +5853,6 @@ local foolhardy = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_marsmoons",
 		},
@@ -6268,7 +6307,6 @@ local adroit = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_asteroidbelt",
 		},
@@ -6320,7 +6358,6 @@ local penetrating = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_void",
 		},
@@ -6372,7 +6409,6 @@ local treacherous = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 			"c_cry_marsmoons",
 		},
@@ -6646,7 +6682,10 @@ local oldblueprint = {
 								G.jokers:remove_card(card)
 								card:remove()
 								card = nil
-								if G.P_CENTERS["j_blueprint"].unlocked and G.GAME.oldbpfactor < 10 then
+								if
+									G.P_CENTERS["j_blueprint"].unlocked
+									and ((G.GAME.oldbpfactor and G.GAME.oldbpfactor < 10) or not G.GAME.oldbpfactor)
+								then
 									G.GAME.oldbpfactor = math.min(((G.GAME.oldbpfactor or 1) * 3), 10)
 								end
 								return true
@@ -7299,7 +7338,6 @@ local fractal = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
 			"set_cry_poker_hand_stuff",
 		},
 	},
@@ -8573,7 +8611,7 @@ local lebaron_james = {
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 		},
 	},
 	name = "cry-LeBaron James",
@@ -8699,7 +8737,7 @@ local cat_owl = { -- Lucky Cards are considered Echo Cards and vice versa
 	object_type = "Joker",
 	dependencies = {
 		items = {
-			"set_cry_misc_joker",
+			"set_cry_meme",
 			"m_cry_echo",
 			"set_cry_misc",
 		},
@@ -8785,7 +8823,70 @@ local eyeofhagane = {
 		art = { "Soren" },
 	},
 }
-
+local familiar_currency =
+	{ -- At the end of round: if the player has more than 19$ take away 19$ and make a random meme Joker
+		object_type = "Joker",
+		dependencies = {
+			items = {
+				"set_cry_meme",
+			},
+		},
+		name = "cry-Familiar Currency",
+		key = "familiar_currency",
+		pos = { x = 0, y = 6 },
+		config = { extra = 19 },
+		order = 137,
+		rarity = 3,
+		cost = 0,
+		blueprint_compat = true,
+		atlas = "atlasone",
+		loc_vars = function(self, info_queue, center)
+			return { vars = { center.ability.extra } }
+		end,
+		calculate = function(self, card, context)
+			if
+				context.end_of_round
+				and not context.individual
+				and not context.repetition
+				and not (context.blueprint_card or card).getting_sliced
+			then
+				if
+					to_big(G.GAME.dollars - G.GAME.bankrupt_at) >= to_big(card.ability.extra)
+					and #G.jokers.cards + G.GAME.joker_buffer < G.jokers.config.card_limit
+				then
+					G.GAME.joker_buffer = G.GAME.joker_buffer + 1
+					ease_dollars(-card.ability.extra)
+					G.E_MANAGER:add_event(Event({
+						func = function()
+							SMODS.add_card({ set = "Meme", key_append = "fcc" })
+							G.GAME.joker_buffer = 0
+							return true
+						end,
+					}))
+					card_eval_status_text(
+						context.blueprint_card or card,
+						"extra",
+						nil,
+						nil,
+						nil,
+						{ message = localize("k_plus_joker"), colour = G.C.BLUE }
+					)
+				end
+			end
+		end,
+		cry_credits = {
+			idea = {
+				"Gud Username",
+				"y_not_tony",
+			},
+			code = {
+				"SDM_0",
+			},
+			art = {
+				"Gud Username",
+			},
+		},
+	}
 local highfive = {
 	object_type = "Joker",
 	dependencies = {
@@ -8854,6 +8955,56 @@ local highfive = {
 		art = { "MarioFan597" },
 		code = { "astrapboy" },
 	},
+}
+local sock_and_sock = {
+	cry_credits = {
+		idea = {
+			"lolxddj",
+		},
+		art = {
+			"lolxddj",
+		},
+		code = {
+			"70UNIK",
+		},
+	},
+	object_type = "Joker",
+	dependencies = {
+		items = {
+			"set_cry_misc_joker",
+			"m_cry_abstract",
+		},
+	},
+	name = "cry-sock_and_sock",
+	key = "sock_and_sock",
+	pos = { x = 6, y = 6 },
+	config = {
+		extra = { retriggers = 1 },
+		immutable = { max_retriggers = 40 },
+	},
+	enhancement_gate = "m_cry_abstract",
+	rarity = 2,
+	cost = 7,
+	order = 138,
+	atlas = "atlastwo",
+	blueprint_compat = true,
+	loc_vars = function(self, info_queue, center)
+		info_queue[#info_queue + 1] = G.P_CENTERS.m_cry_abstract
+		return { vars = { math.min(center.ability.immutable.max_retriggers, center.ability.extra.retriggers) } }
+	end,
+	calculate = function(self, card, context)
+		if context.repetition and context.cardarea == G.play then
+			if SMODS.has_enhancement(context.other_card, "m_cry_abstract") then
+				return {
+					message = localize("k_again_ex"),
+					repetitions = to_number(
+						math.min(card.ability.immutable.max_retriggers, card.ability.extra.retriggers)
+					),
+					card = card,
+				}
+			end
+		end
+	end,
 }
 local miscitems = {
 	jimball_sprite,
@@ -8970,7 +9121,9 @@ local miscitems = {
 	huntingseason,
 	--cat_owl,
 	--eyeofhagane, (apparently this wasn't screened)
+	familiar_currency,
 	highfive,
+	sock_and_sock,
 }
 return {
 	name = "Misc. Jokers",

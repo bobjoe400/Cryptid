@@ -514,93 +514,19 @@ end
 
 Cryptid.big_num_blacklist = {
 	-- empty for now add more later
+
+	-- Add your Jokers here if you *don't* want to have it's numbers go into BigNum
+	-- FORMAT: <Joker Key ("j_cry_oil_lamp")> = true,
+	-- TARGET: BigNum Black List
 }
 
---[[
-	List of immutable jokers (these will return false for is_card_big):
-	Cryptid:
-		Epic:
-			sync_catalyst
-			canvas
-			error_joker
-			M
-			double_scale
-			curse_sob
-			bonusjoker
-			altgoogol
-			soccer
+Cryptid.mod_whitelist = {
+	Cryptid = true,
 
-		Exotic:
-			speculo
-			effarcire
-			circulus_pistoris
-			gemino
-
-		M:
-			jollysus
-			bubblem
-			loopy
-			reverse
-
-		Misc_Jokers:
-			happyhouse
-			maximized
-			queensgambit
-			seal_the_deal
-			maze
-			panopticon
-			happy
-			translucent
-			kscope
-			oldinvisible
-			necromancer
-			lebaron_james
-			huntingseason
-			eyeofhagane
-		
-		Spooky:
-			wrapped
-			choco_dice
-
-	Base:
-		Fortune Teller
-		Shoot the Moon
-		Riff-raff
-		Chaos the Clown
-		Dusk
-		Mime
-		Hack
-		Sock and Buskin
-		Invisible Joker
-		Swashbuckler
-		Smeared Joker
-		Certificate
-		Mr. Bones
-		Diet Cola
-		Luchador
-		Midas Mask
-		Shortcut
-		Seance
-		Superposition
-		Sixth Sense
-		DNA
-		Splash
-		Supernova
-		Pareidolia
-		Raised Fist
-		Marble Joker
-		Four Fingers
-		Joker Stencil
-		Showman
-		Blueprint
-		Oops! All 6s
-		Brainstorm
-		Cartomancer
-		Astronomer
-		Burnt Joker
-		Chicot
-		Perkeo
-]]
+	-- Add your ModName here if you want your mod to have it's jokers' values go into BigNum
+	-- FORMAT: <ModName> = true,
+	-- TARGET: BigNum Mod Whitelist
+}
 
 function Cryptid.is_card_big(joker)
 	local center = joker.config and joker.config.center
@@ -609,6 +535,10 @@ function Cryptid.is_card_big(joker)
 	end
 
 	if center.immutable and center.immutable == true then
+		return false
+	end
+
+	if center.mod and not Cryptid.mod_whitelist[center.mod.name] then
 		return false
 	end
 
@@ -772,6 +702,7 @@ function Controller:key_press_update(key, dt)
 	then
 		G.GAME.USING_CODE = true
 		G.GAME.USING_POINTER = true
+		G.DEBUG_POINTER = true
 		G.ENTERED_CARD = ""
 		G.CHOOSE_CARD = UIBox({
 			definition = create_UIBox_pointer(card),
@@ -805,4 +736,48 @@ function Cryptid.is_shiny()
 		return true
 	end
 	return false
+end
+
+--Abstracted cards
+function Cryptid.cry_enhancement_has_specific_suit(card)
+	for k, _ in pairs(SMODS.get_enhancements(card)) do
+		if G.P_CENTERS[k].specific_suit then
+			return true
+		end
+	end
+	return false
+end
+function Cryptid.cry_enhancement_get_specific_suit(card)
+	for k, _ in pairs(SMODS.get_enhancements(card)) do
+		if G.P_CENTERS[k].specific_suit then
+			return G.P_CENTERS[k].specific_suit
+		end
+	end
+	return nil
+end
+
+function Cryptid.cry_enhancement_has_specific_rank(card)
+	for k, _ in pairs(SMODS.get_enhancements(card)) do
+		if G.P_CENTERS[k].specific_rank then
+			return true
+		end
+	end
+	return false
+end
+function Cryptid.cry_enhancement_get_specific_rank(card)
+	for k, _ in pairs(SMODS.get_enhancements(card)) do
+		if G.P_CENTERS[k].specific_rank then
+			return G.P_CENTERS[k].specific_rank
+		end
+	end
+	return nil
+end
+--For better durability (at the expense of performance), this finds the rank ID of a custom rank (such as abstract).
+function Cryptid.cry_rankname_to_id(rankname)
+	for i, v in pairs(SMODS.Rank.obj_buffer) do
+		if rankname == v then
+			return i
+		end
+	end
+	return nil
 end

@@ -722,6 +722,7 @@ local m = {
 	dependencies = {
 		items = {
 			"set_cry_epic",
+			"set_cry_meme",
 			-- Note: This isn't in the M Joker content set due to being added separately
 		},
 	},
@@ -845,6 +846,7 @@ local boredom = {
 	dependencies = {
 		items = {
 			"set_cry_epic",
+			"set_cry_meme",
 		},
 	},
 	gameset_config = {
@@ -1008,7 +1010,6 @@ local double_scale = {
 	cost = 18,
 	immutable = true,
 	atlas = "atlasepic",
-	--todo: support jokers that scale multiple variables
 	cry_scale_mod = function(self, card, joker, orig_scale_scale, true_base, orig_scale_base, new_scale_base)
 		if Cryptid.gameset(self) == "exp_modest" then
 			return lenient_bignum(to_big(true_base) * 2)
@@ -1304,6 +1305,7 @@ local curse_sob = {
 	dependencies = {
 		items = {
 			"set_cry_epic",
+			"set_cry_meme",
 		},
 	},
 	gameset_config = {
@@ -1671,6 +1673,7 @@ local altgoogol = {
 	eternal_compat = false,
 	atlas = "atlasepic",
 	soul_pos = { x = 10, y = 0, extra = { x = 5, y = 3 } },
+	config = { copies = 2 },
 	gameset_config = {
 		modest = {
 			cost = 15,

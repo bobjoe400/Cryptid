@@ -173,15 +173,9 @@ local choco1 = {
 			end
 		end
 		--create a ghost
-		if not (SMODS.Mods["jen"] or {}).can_load then
-			local card = create_card("Joker", G.jokers, nil, nil, nil, nil, "j_cry_ghost")
-			card:add_to_deck()
-			G.jokers:emplace(card)
-		else
-			if G.GAME.dollars ~= 0 then
-				ease_dollars((-G.GAME.dollars - 1e6), true)
-			end
-		end
+		local card = create_card("Joker", G.jokers, nil, nil, nil, nil, "j_cry_ghost")
+		card:add_to_deck()
+		G.jokers:emplace(card)
 	end,
 }
 local choco2 = {
@@ -233,11 +227,11 @@ local choco3 = {
 	end,
 	finish = function(self)
 		--Reverse all potion effects
-		if G.GAME.events[self.key].potions[2] then
+		if G.GAME.events[self.key].potions and G.GAME.events[self.key].potions[2] then
 			G.GAME.starting_params.ante_scaling = G.GAME.starting_params.ante_scaling
 				/ (1.15 ^ G.GAME.events[self.key].potions[2])
 		end
-		if G.GAME.events[self.key].potions[3] then
+		if G.GAME.events[self.key].potions and G.GAME.events[self.key].potions[3] then
 			G.GAME.round_resets.hands = G.GAME.round_resets.hands + G.GAME.events[self.key].potions[3]
 			ease_hands_played(G.GAME.events[self.key].potions[3])
 			G.GAME.round_resets.discards = G.GAME.round_resets.discards + G.GAME.events[self.key].potions[3]
@@ -1856,7 +1850,7 @@ items = {
 	candy_basket,
 	blacklist,
 	--ghost,
-	possessed,
+	--possessed,
 	spookydeck,
 	candy_dagger,
 	candy_cane,

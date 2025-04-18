@@ -1,5 +1,44 @@
 -- overrides.lua - Adds hooks and overrides used by multiple features.
 
+--Get Pack hooks
+
+-- dumb hook because i don't feel like aggressively patching get_pack to do stuff
+-- very inefficient
+-- maybe smods should overwrite the function and make it more targetable?
+local getpackref = get_pack
+function get_pack(_key, _type)
+	local temp_banned = copy_table(G.GAME.banned_keys)
+	--Add banished keys (via DELETE) to banned_keys so they don't appear in shop
+	for k, v in pairs(G.GAME.cry_banished_keys) do
+		G.GAME.banned_keys[k] = v
+	end
+	local abc = getpackref(_key, _type)
+	--Convert banned keys back to what it was originally
+	G.GAME.banned_keys = copy_table(temp_banned)
+	if G.GAME.modifiers.cry_equilibrium then
+		if not P_CRY_ITEMS then
+			P_CRY_ITEMS = {}
+			local valid_pools = { "Joker", "Consumeables", "Voucher", "Booster" }
+			for _, id in ipairs(valid_pools) do
+				for k, v in pairs(G.P_CENTER_POOLS[id]) do
+					if not Cryptid.no(v, "doe", k) then
+						P_CRY_ITEMS[#P_CRY_ITEMS + 1] = v.key
+					end
+				end
+			end
+			for k, v in pairs(G.P_CARDS) do
+				if not Cryptid.no(v, "doe", k) then
+					P_CRY_ITEMS[#P_CRY_ITEMS + 1] = v.key
+				end
+			end
+		end
+		return G.P_CENTERS[pseudorandom_element(
+			P_CRY_ITEMS,
+			pseudoseed("cry_equipackbrium" .. G.GAME.round_resets.ante)
+		)]
+	end
+	return abc
+end
 -- get_currrent_pool hook for Deck of Equilibrium and Copies
 local gcp = get_current_pool
 function get_current_pool(_type, _rarity, _legendary, _append, override_equilibrium_effect)
@@ -109,7 +148,7 @@ function Blind:defeat(s)
 	dft(self, s)
 	local obj = self.config.blind
 	-- Ignore blinds with loc_vars because orb does not properly work with them yet
-	if obj.boss and (obj.boss.no_orb or obj.boss.epic or obj.loc_vars) then
+	if obj.boss and (obj.boss.no_orb or obj.loc_vars) then
 		return
 	end
 	if
@@ -181,6 +220,7 @@ function Game:init_game_object()
 end
 
 -- reset_castle_card hook for things like Dropshot and Number Blocks
+-- Also exclude specific ranks/suits (such as abstract cards)
 local rcc = reset_castle_card
 function reset_castle_card()
 	rcc()
@@ -191,7 +231,7 @@ function reset_castle_card()
 	G.GAME.current_round.cry_dropshot_card.suit = "Spades"
 	local valid_castle_cards = {}
 	for k, v in ipairs(G.playing_cards) do
-		if not SMODS.has_no_suit(v) then
+		if not SMODS.has_no_suit(v) and not SMODS.has_enhancement(v, "m_cry_abstract") then
 			valid_castle_cards[#valid_castle_cards + 1] = v
 		end
 	end
@@ -1011,12 +1051,16 @@ function create_card(_type, area, legendary, _rarity, skip_materialize, soulable
 			check_for_unlock({ type = "have_edition" })
 		end
 	end
-	if
-		(card.ability.set == "Code")
-		and G.GAME.used_vouchers.v_cry_quantum_computing
-		and pseudorandom("cry_quantum_computing") > 0.7
-	then
-		card:set_edition({ negative = true })
+	if (card.ability.set == "Code") and G.GAME.used_vouchers.v_cry_quantum_computing then
+		local tot = 0
+		for k, v in pairs(SMODS.find_card("v_cry_quantum_computing")) do
+			tot = tot + v.ability.extra
+		end
+		if card.ability.cry_multiuse then
+			card.ability.cry_multiuse = math.ceil((card.ability.cry_multiuse + tot))
+		else
+			card.ability.cry_multiuse = tot + 1
+		end
 	end
 	if
 		G.GAME.modifiers.cry_force_edition
@@ -1071,60 +1115,6 @@ function create_card(_type, area, legendary, _rarity, skip_materialize, soulable
 	-- during the update function. Cryptid can create jokers mid-scoring, meaning
 	-- those values will be unset during scoring unless update() is manually called.
 	card:update(0.016) -- dt is unused in the base game, but we're providing a realistic value anyway
-
-	--Debuff jokers if certain boss blinds are active
-	if _type == "Joker" and G.GAME and G.GAME.blind and not G.GAME.blind.disabled then
-		if
-			G.GAME.blind.name == "cry-box"
-			or (G.GAME.blind.name == "cry-Obsidian Orb" and G.GAME.defeated_blinds["bl_cry_box"] == true)
-		then
-			if card.config.center.rarity == 1 and not card.debuff then
-				card.debuff = true
-				card.debuffed_by_blind = true
-			end
-		end
-		if
-			G.GAME.blind.name == "cry-windmill"
-			or (G.GAME.blind.name == "cry-Obsidian Orb" and G.GAME.defeated_blinds["bl_cry_windmill"] == true)
-		then
-			if card.config.center.rarity == 2 and not card.debuff then
-				card.debuff = true
-				card.debuffed_by_blind = true
-			end
-		end
-		if
-			G.GAME.blind.name == "cry-striker"
-			or (G.GAME.blind.name == "cry-Obsidian Orb" and G.GAME.defeated_blinds["bl_cry_striker"] == true)
-		then
-			if card.config.center.rarity == 3 and not card.debuff then
-				card.debuff = true
-				card.debuffed_by_blind = true
-			end
-		end
-		if
-			G.GAME.blind.name == "cry-shackle"
-			or (G.GAME.blind.name == "cry-Obsidian Orb" and G.GAME.defeated_blinds["bl_cry_shackle"] == true)
-		then
-			if (card.edition and card.edition.negative == true) and not card.debuff then
-				card.debuff = true
-				card.debuffed_by_blind = true
-			end
-		end
-		if
-			G.GAME.blind.name == "cry-pin"
-			or (G.GAME.blind.name == "cry-Obsidian Orb" and G.GAME.defeated_blinds["bl_cry_pin"] == true)
-		then
-			if
-				card.config.center.rarity ~= 3
-				and card.config.center.rarity ~= 2
-				and card.config.center.rarity ~= 1
-				and card.config.center.rarity ~= 5
-			then
-				card.debuff = true
-				card.debuffed_by_blind = true
-			end
-		end
-	end
 	return card
 end
 
@@ -1349,4 +1339,124 @@ function create_UIBox_generic_options(args)
 		}
 	end
 	return ret
+end
+
+local scuref = set_consumeable_usage
+function set_consumeable_usage(card)
+	for i = 1, #G.GAME.cry_last_used_consumeables do
+		if not G.GAME.cry_function_stupid_workaround then
+			G.GAME.cry_function_stupid_workaround = {}
+		end
+		G.GAME.cry_function_stupid_workaround[i] = G.GAME.cry_last_used_consumeables[i]
+	end
+	if not G.GAME.cry_last_used_consumeables then
+		G.GAME.cry_last_used_consumeables = {}
+	end
+	local nextindex = #G.GAME.cry_last_used_consumeables + 1
+	G.GAME.cry_last_used_consumeables[nextindex] = card.config.center.key
+	if nextindex > 3 then
+		table.remove(G.GAME.cry_last_used_consumeables, 1)
+	end
+	scuref(card)
+end
+
+--Abstract cards: Fix to avoid "ghost cards", as aresult of destroying discarded cards by adding a flag checcking its not destroyed
+G.FUNCS.draw_from_discard_to_deck = function(e)
+	G.E_MANAGER:add_event(Event({
+		trigger = "immediate",
+		func = function()
+			local discard_count = #G.discard.cards
+			for i = 1, discard_count do --draw cards from deck
+				local card = G.discard.cards[i]
+				if not card.shattered and not card.destroyed then
+					draw_card(
+						G.discard,
+						G.deck,
+						i * 100 / discard_count,
+						"up",
+						nil,
+						card,
+						0.005,
+						i % 2 == 0,
+						nil,
+						math.max((21 - i) / 20, 0.7)
+					)
+				end
+			end
+			return true
+		end,
+	}))
+end
+
+--Add a hook to getID for abstracts (and to conditionally enable the check)
+local getIDenhance = Card.get_id
+function Card:get_id()
+	--Force suit to be suit X if specified in enhancement, only if not vampired
+	if Cryptid.cry_enhancement_has_specific_rank(self) and not self.vampired then
+		--Get the max value + 1, to always be the last at the list
+		return SMODS.Rank.max_id.value + 1
+	end
+	local vars = getIDenhance(self)
+	return vars
+end
+
+--override shatter function to adjust volume (it has been requested that at end of deck, abstract cards should shatter a bit quieter)
+function Card:shatter(volume)
+	local dissolve_time = 0.7
+	self.shattered = true
+	self.dissolve = 0
+	self.dissolve_colours = { { 1, 1, 1, 0.8 } }
+	self:juice_up()
+	local childParts = Particles(0, 0, 0, 0, {
+		timer_type = "TOTAL",
+		timer = 0.007 * dissolve_time,
+		scale = 0.3,
+		speed = 4,
+		lifespan = 0.5 * dissolve_time,
+		attach = self,
+		colours = self.dissolve_colours,
+		fill = true,
+	})
+	G.E_MANAGER:add_event(Event({
+		trigger = "after",
+		blockable = false,
+		delay = 0.5 * dissolve_time,
+		func = function()
+			childParts:fade(0.15 * dissolve_time)
+			return true
+		end,
+	}))
+	G.E_MANAGER:add_event(Event({
+		blockable = false,
+		func = function()
+			play_sound("glass" .. math.random(1, 6), math.random() * 0.2 + 0.9, volume or 0.5)
+			play_sound("generic1", math.random() * 0.2 + 0.9, volume or 0.5)
+			return true
+		end,
+	}))
+	G.E_MANAGER:add_event(Event({
+		trigger = "ease",
+		blockable = false,
+		ref_table = self,
+		ref_value = "dissolve",
+		ease_to = 1,
+		delay = 0.5 * dissolve_time,
+		func = function(t)
+			return t
+		end,
+	}))
+	G.E_MANAGER:add_event(Event({
+		trigger = "after",
+		blockable = false,
+		delay = 0.55 * dissolve_time,
+		func = function()
+			self:remove()
+			return true
+		end,
+	}))
+	G.E_MANAGER:add_event(Event({
+		trigger = "after",
+		blockable = false,
+		delay = 0.51 * dissolve_time,
+	}))
 end
