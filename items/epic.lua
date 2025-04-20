@@ -2371,6 +2371,6 @@ return {
 		spectrogram,
 		jtron,
 		clockwork,
-		verisimile,
+		-- verisimile,
 	},
 }
