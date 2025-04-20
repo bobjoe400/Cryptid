@@ -2251,15 +2251,15 @@ local verisimile = {
 	object_type = "Joker",
 	name = "cry-verisimile",
 	key = "verisimile",
-	pos = { x = 0, y = 1 },
-	soul_pos = { x = 1, y = 1, extra = { x = 2, y = 1 } },
+	pos = { x = 6, y = 5 },
+	soul_pos = { x = 8, y = 5, extra = { x = 7, y = 5 } },
 	config = { extra = { xmult = 1 } },
 	rarity = "cry_epic",
 	cost = 14,
 	order = 136,
 	immutable = true,
 	blueprint_compat = true,
-	atlas = "placeholders",
+	atlas = "atlasexotic",
 	loc_vars = function(self, info_queue, center)
 		return { vars = { number_format(center.ability.extra.xmult) } }
 	end,
